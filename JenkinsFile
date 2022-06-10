@@ -1,0 +1,27 @@
+node{
+    def mvnHome= tool 'MyMaven'
+    def dockerImageTag="dbd11/dockerhub{env.BUILD_NUMBER}"
+    stage('clone repo'){
+        git 'https://github.com/dbdelgado11/demo-service.git'
+        mvnHome = tool 'MyMaven'
+    }
+    stage ('build demo service project'){
+        bat "C:\\apache-maven-3.8.5\\bin\\mvn clean install -DskipTests=true"
+        //jar file will be generated
+    }
+    stage('build docker image'){
+        dockerImage = docker.build("dbd11/dockerhub:${env.BUILD_NUMBER}")
+    }
+    stage('build docker deploy'){
+        echo "docker image tag name: ${dockerImageTag} "
+        //we have to create and pass credentials in docker
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials'){
+        dockerImage.push("${env.BUILD_NUMBER}")
+        dockerImage.push("latest")
+    }
+    }
+    }
+
+
+
+
